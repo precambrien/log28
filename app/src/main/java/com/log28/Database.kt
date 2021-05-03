@@ -90,7 +90,7 @@ open class Symptom(@PrimaryKey var name: String = "",
     }
 }
 
-open class CycleInfo(var cycleLength: Int = 28, var periodLength: Int = 5): RealmObject()
+open class CycleInfo(var cycleLength: Int = 28, var periodLength: Int = 5, var ovulationDay: Int = 16): RealmObject()
 
 fun Realm.getCycleInfo(): CycleInfo {
     val realm = this

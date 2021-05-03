@@ -179,6 +179,7 @@ class RealmPreferenceDataStore(context: Context?, private val realm: Realm): Pre
         return when(key) {
             "period_length" -> realm.getCycleInfo().periodLength.toString()
             "cycle_length" -> realm.getCycleInfo().cycleLength.toString()
+            "ovulation_day" -> realm.getCycleInfo().ovulationDay.toString()
             else -> super.getString(key, defValue)
         }
     }
@@ -190,6 +191,9 @@ class RealmPreferenceDataStore(context: Context?, private val realm: Realm): Pre
             }
             "cycle_length" -> realm.executeTransactionAsync {
                 it.where(CycleInfo::class.java).findFirst()?.cycleLength = value!!.toInt()
+            }
+            "ovulation_day" -> realm.executeTransactionAsync {
+                it.where(CycleInfo::class.java).findFirst()?.ovulationDay = value!!.toInt()
             }
             else -> super.putString(key, value)
         }

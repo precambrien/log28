@@ -45,6 +45,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/period_length_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -68,6 +69,34 @@
             android:textColorHighlight="@color/primaryText"
             android:textColorHint="#BDBDBD"
             android:hint="5"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ovulation_day_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/period_length_layout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp">
+
+        <TextView
+            android:id="@+id/ovulation_day_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ovulation_day"
+            android:textColor="@color/primaryText"/>
+
+        <EditText
+            android:id="@+id/ovulation_day_input"
+            android:inputType="number"
+            android:layout_height="wrap_content"
+            android:layout_width="48sp"
+            android:layout_marginLeft="16dp"
+            android:textColorHighlight="@color/primaryText"
+            android:textColorHint="#BDBDBD"
+            android:hint="16"/>
 
     </LinearLayout>
 

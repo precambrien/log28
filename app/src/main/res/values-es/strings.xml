@@ -4,6 +4,7 @@
     <string name="cycle_data">Introduce la información de tu ciclo</string>
     <string name="cycle_length">Duración del ciclo</string>
     <string name="period_length">Duración de la menstruación</string>
+    <string name="ovulation_day">Día de la ovulación</string>
     <string name="cycle_data_desc">log28 utiliza esta información para predecir tus menstruaciones. Puedes cambiarlo después.</string>
     <string name="last_period">Introduce el primer día de tu última menstruación</string>
     <string name="days_until_period">días hasta la próxima menstruación</string>
@@ -27,6 +28,7 @@
 
     <string name="avg_cycle_length">Duración media del ciclo</string>
     <string name="avg_period_length">Duración media de la menstruación</string>
+    <string name="avg_ovulation_day">Día medio de la ovulación</string>
     <string name="customize_tracking">Personalizar seguimiento</string>
     <string name="customize_tracking_desc">Activa y desactiva las opciones individualmente</string>
     <string name="backup_restore">Copia de seguridad y restauración</string>

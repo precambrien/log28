@@ -18,6 +18,13 @@
             android:summary="The length of your periods"
             android:dialogTitle="Period Length"/>
 
+        <EditTextPreference
+            android:inputType="number"
+            android:key="ovulation_day"
+            android:title="Ovulation Day"
+            android:summary="Length of the follicular phase (from the first day of menstruation)"
+            android:dialogTitle="Ovulation Day"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory

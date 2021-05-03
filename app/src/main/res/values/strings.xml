@@ -4,6 +4,7 @@
     <string name="cycle_data">Enter Your Cycle Data</string>
     <string name="cycle_length">Cycle Length</string>
     <string name="period_length">Period Length</string>
+    <string name="ovulation_day">Ovulation day</string>
     <string name="cycle_data_desc">log28 uses this to predict your periods. You can always change it later.</string>
     <string name="last_period">Enter The First Day of Your Last Period</string>
     <string name="days_until_period">days until next period</string>
@@ -27,6 +28,7 @@
 
     <string name="avg_cycle_length">Average Cycle Length</string>
     <string name="avg_period_length">Average Period Length</string>
+    <string name="avg_ovulation_day">Average Ovulation Day</string>
     <string name="customize_tracking">Customize Tracking</string>
     <string name="customize_tracking_desc">Turn on and off individual options</string>
     <string name="backup_restore">Backup and Restore</string>

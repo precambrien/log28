@@ -74,6 +74,25 @@ class CycleIntroFragment : Fragment() {
 
             }
         })
+
+        ovulation_day_input.addTextChangedListener(object :TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                // we don't care
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                // we don't care
+            }
+
+            override fun afterTextChanged(p0: Editable?) {
+                //
+                realm.executeTransactionAsync {
+                    val cycleInfo = it.where(CycleInfo::class.java).findFirst() ?: it.createObject(CycleInfo::class.java)
+                    cycleInfo.ovulationDay = p0.toString().toIntOrNull() ?: 16
+                }
+
+            }
+        })
     }
 
     companion object {
