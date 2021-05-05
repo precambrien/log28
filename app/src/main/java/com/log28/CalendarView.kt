@@ -1,17 +1,29 @@
 package com.log28
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import devs.mulham.horizontalcalendar.utils.Utils
+import android.widget.TextView
+import androidx.core.view.children
+import androidx.fragment.app.Fragment
+import com.kizitonwose.calendarview.model.CalendarDay
+import com.kizitonwose.calendarview.model.CalendarMonth
+import com.kizitonwose.calendarview.model.DayOwner
+import com.kizitonwose.calendarview.ui.DayBinder
+import com.kizitonwose.calendarview.ui.MonthHeaderFooterBinder
+import com.kizitonwose.calendarview.ui.ViewContainer
+import com.log28.databinding.CalendarDayBinding
+import com.log28.databinding.CalendarMonthHeaderBinding
+import com.log28.databinding.FragmentCalendarViewBinding
 import io.realm.Realm
-import kotlinx.android.synthetic.main.fragment_calendar_view.*
-import pl.rafman.scrollcalendar.contract.MonthScrollListener
-import pl.rafman.scrollcalendar.data.CalendarDay
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.TextStyle
+import android.graphics.Typeface
 import java.util.*
+
 
 /**
  * A simple [Fragment] subclass.
@@ -21,9 +33,14 @@ import java.util.*
 class CalendarView : Fragment() {
     private val realm = Realm.getDefaultInstance()
     private var periodDateObjects = realm.getPeriodDates()
+
     //TODO use a tree for better calendar performance?
     private var periodDates = mutableListOf<Long>()
     private val cycleInfo = realm.getCycleInfo()
+
+    private lateinit var binding: FragmentCalendarViewBinding
+    private var selectedDate: LocalDate? = null
+    private val today = LocalDate.now()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -40,66 +57,98 @@ class CalendarView : Fragment() {
         // we should have context at this point
         periodDates = predictFuturePeriods(periodDateObjects.map { d -> d.date }.toMutableList())
 
-        periodDateObjects.addChangeListener {
-            results, changeSet ->
+        periodDateObjects.addChangeListener { results, changeSet ->
             if (changeSet != null) {
                 periodDates = predictFuturePeriods(periodDateObjects.map { d -> d.date }.toMutableList())
-                scrollCalendar.adapter.notifyDataSetChanged()
+                binding.calendar.notifyCalendarChanged()
             }
         }
 
-        cycleInfo.addChangeListener<CycleInfo> {
-            _, changeSet ->
+        cycleInfo.addChangeListener<CycleInfo> { _, changeSet ->
             if (changeSet != null) {
                 periodDates = predictFuturePeriods(periodDateObjects.map { d -> d.date }.toMutableList())
-                scrollCalendar.adapter.notifyDataSetChanged()
+                binding.calendar.notifyCalendarChanged()
             }
         }
-        setupScrollCalendar()
-    }
 
-    // setup the calendar
-    private fun setupScrollCalendar() {
-        // show periods on the calendar as it renders
-        val today = Calendar.getInstance()
-        scrollCalendar.setDateWatcher({
-            year, month, day ->
-            if ((year.toLong() * 10000) + (month.toLong() * 100) + day.toLong() in periodDates) {
-                CalendarDay.SELECTED
-            } else if (year == today.get(Calendar.YEAR) &&
-                    month == today.get(Calendar.MONTH) && day == today.get(Calendar.DAY_OF_MONTH)) {
-                CalendarDay.TODAY
-            } else CalendarDay.DEFAULT
-        })
-
-        // we call the underlying activity and tell it to navigate to the day view and set the day
-        scrollCalendar.setOnDateClickListener({
-            year, month, day ->  val cal = Calendar.getInstance()
-            cal.set(Calendar.YEAR, year)
-            cal.set(Calendar.MONTH, month)
-            cal.set(Calendar.DAY_OF_MONTH, day)
-            // only allow you to go to the day view for dates not in the future
-            Log.d(TAG, "day clicked ${cal.formatDate()}")
-            //TODO redo this tangled mess with some RX code calendar tap -> event -> dayview updates
-            if (cal.before(Calendar.getInstance()) || cal.isToday())
-                (this.activity as? MainActivity)?.navToDayView(cal)
-        })
-
-        scrollCalendar.setMonthScrollListener(object : MonthScrollListener {
-            override fun shouldAddNextMonth(lastDisplayedYear: Int, lastDisplayedMonth: Int): Boolean {
-                // don't let the user scroll more than 4 months into the future
-                val fourMonths = Calendar.getInstance()
-                fourMonths.add(Calendar.MONTH, 4)
-                if (fourMonths.get(Calendar.YEAR) == lastDisplayedYear &&
-                        fourMonths.get(Calendar.MONTH) == lastDisplayedMonth)
-                    return false
-                return true
+        binding = FragmentCalendarViewBinding.bind(view)
+        val daysOfWeek = daysOfWeekFromLocale()
+        // days of week legend
+        binding.legendLayout.root.children.forEachIndexed { index, view ->
+            (view as TextView).apply {
+                text = daysOfWeek[index].getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault()).toString()
+                setTextColorRes(R.color.primaryText)
             }
+        }
 
-            override fun shouldAddPreviousMonth(firstDisplayedYear: Int, firstDisplayedMonth: Int): Boolean {
-                return true
+        // shows current month and allows scrolling to +/- 4 months
+        val currentMonth = YearMonth.now()
+        val startMonth = currentMonth.minusMonths(4)
+        val endMonth = currentMonth.plusMonths(4)
+        binding.calendar.setup(startMonth, endMonth, daysOfWeek.first())
+        binding.calendar.scrollToMonth(currentMonth)
+
+        class DayViewContainer(view: View) : ViewContainer(view) {
+            // Will be set when this container is bound. See the dayBinder.
+            lateinit var day: CalendarDay
+            val textView = CalendarDayBinding.bind(view).dayText
+            val today = LocalDate.now()
+
+            init {
+                textView.setOnClickListener {
+                    if (day.owner == DayOwner.THIS_MONTH) {
+                        if (!(day.date.isAfter(today))) {
+                            val cal = day.date.toCalendar()
+                            Log.d(TAG, "day clicked ${cal.formatDate()}")
+                            (this@CalendarView.activity as? MainActivity)?.navToDayView(cal)
+                        }
+                    }
+                }
             }
-        })
+        }
+
+        binding.calendar.dayBinder = object : DayBinder<DayViewContainer> {
+            override fun create(view: View) = DayViewContainer(view)
+            override fun bind(container: DayViewContainer, day: CalendarDay) {
+                container.day = day
+                val textView = container.textView
+                textView.text = day.date.dayOfMonth.toString()
+
+                if (day.owner == DayOwner.THIS_MONTH) {
+                    textView.visibility = View.VISIBLE
+                    val longDate = day.date.formatToLong()
+                    if (longDate in periodDates) {
+                        // period day
+                        textView.setTextColorRes(R.color.white)
+                        textView.setBackgroundResource(R.drawable.primary_selected_bg)
+                    } else {
+                        // normal day
+                        textView.background = null
+                        if (day.date.isAfter(today)) {
+                            textView.setTextColorRes(R.color.secondaryText)
+                        } else {
+                            textView.setTextColorRes(R.color.primaryText)
+                        }
+                    }
+                    if (day.date == today) {
+                        textView.setTypeface(textView.typeface, Typeface.BOLD)
+                    }
+                } else {
+                    textView.visibility = View.INVISIBLE
+                }
+            }
+        }
+
+        class MonthViewContainer(view: View) : ViewContainer(view) {
+            val textView = CalendarMonthHeaderBinding.bind(view).HeaderText
+        }
+        binding.calendar.monthHeaderBinder = object : MonthHeaderFooterBinder<MonthViewContainer> {
+            override fun create(view: View) = MonthViewContainer(view)
+            override fun bind(container: MonthViewContainer, month: CalendarMonth) {
+                val monthLocale = month.yearMonth.month.getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault()).toString()
+                container.textView.text = "${monthLocale.toLowerCase().capitalize()} ${month.year}"
+            }
+        }
     }
 
     // TODO there might be an off by 1 error somewhere in here
@@ -140,6 +189,7 @@ class CalendarView : Fragment() {
 
     companion object {
         const val TAG = "CALVIEW"
+
         /**
          * Use this factory method to create a new instance of
          * this fragment using the provided parameters.
@@ -150,3 +200,4 @@ class CalendarView : Fragment() {
     }
 
 }
+

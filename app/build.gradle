@@ -14,12 +14,23 @@ android {
         versionName "0.6.2"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         vectorDrawables.useSupportLibrary = true
+        multiDexEnabled true
     }
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
+        // Sets Java compatibility to Java 8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildFeatures {
+        viewBinding = true
     }
 }
 
@@ -37,6 +48,7 @@ dependencies {
     implementation "androidx.vectordrawable:vectordrawable:$androidx_version"
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation "androidx.recyclerview:recyclerview:$androidx_version"
+    implementation "androidx.core:core-ktx:1.2.0"
 
     // preference eXtended
     implementation 'com.takisoft.preferencex:preferencex:1.1.0'
@@ -46,7 +58,8 @@ dependencies {
     implementation 'com.xwray:groupie-kotlin-android-extensions:2.8.1'
 
     //calendar
-    implementation 'pl.rafman.widgets:scroll-calendar:1.5.1'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+    implementation 'com.github.kizitonwose:CalendarView:1.0.3'
 
     // top calendar
     implementation 'androidx.constraintlayout:constraintlayout:2.0.2'

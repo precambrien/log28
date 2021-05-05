@@ -6,12 +6,26 @@ import android.util.Log
 import io.realm.*
 import io.realm.annotations.PrimaryKey
 import java.io.File
+import java.time.LocalDate
 import java.util.*
 
 private val REALM_FILE_NAME = "default.realm" // change if using custom DB name
 private val TMP_REALM_FILE_NAME = "tmp.realm" // first we copy the file to a tmp name to see if it can be opened
 
 private val TAG = "DATABASE"
+
+
+fun LocalDate.formatToLong(): Long {
+    return (this.year.toLong() * 10000) +
+            ((this.monthValue - 1).toLong() * 100) +
+            this.dayOfMonth.toLong()
+}
+
+fun LocalDate.toCalendar(): Calendar {
+    val cal = Calendar.getInstance()
+    cal.set(this.year, this.monthValue - 1, this.dayOfMonth)
+    return cal
+}
 
 // format a date as yyyymmdd
 fun Calendar.formatDate(): Long {

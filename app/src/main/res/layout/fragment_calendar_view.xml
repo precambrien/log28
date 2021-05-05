@@ -1,30 +1,33 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:scrollcalendar="http://schemas.android.com/apk/res-auto"
     tools:context="com.log28.CalendarView"
     android:orientation="vertical">
 
-    <com.log28.UpdatableScrollCalendar
-        android:id="@+id/scrollCalendar"
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/barLayout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        scrollcalendar:backgroundColor="@android:color/transparent"
-        scrollcalendar:currentDayBackground="@drawable/scrollcalendar_circle_outline"
-        scrollcalendar:currentDayTextColor="@android:color/darker_gray"
-        scrollcalendar:customFont="fonts/montserrat-light.otf"
-        scrollcalendar:disabledBackgroundColor="@android:color/transparent"
-        scrollcalendar:disabledTextColor="@android:color/darker_gray"
-        scrollcalendar:fontColor="@android:color/black"
-        scrollcalendar:fontSize="18dp"
-        scrollcalendar:selectedBackground="@drawable/scrollcalendar_circle_full"
-        scrollcalendar:selectedBackgroundBeginning="@drawable/scrollcalendar_range_start"
-        scrollcalendar:selectedBackgroundEnd="@drawable/scrollcalendar_range_end"
-        scrollcalendar:selectedBackgroundMiddle="@drawable/scrollcalendar_range_middle"
-        scrollcalendar:selectedTextColor="@android:color/white"
-        scrollcalendar:unavailableBackground="@drawable/scrollcalendar_strikethrough"
-        scrollcalendar:unavailableTextColor="@android:color/darker_gray" />
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme">
+
+        <include
+            android:id="@+id/legendLayout"
+            layout="@layout/calendar_day_legend"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <com.kizitonwose.calendarview.CalendarView
+        android:id="@+id/calendar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:cv_dayViewResource="@layout/calendar_day"
+        app:cv_monthHeaderResource="@layout/calendar_month_header"
+        app:cv_orientation="vertical" />
 
 </LinearLayout>
