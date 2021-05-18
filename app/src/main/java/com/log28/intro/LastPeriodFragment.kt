@@ -120,7 +120,7 @@ class LastPeriodFragment : Fragment() {
                     when (day.date) {
                         selectedDate -> {
                             textView.setTextColorRes(R.color.white)
-                            textView.setBackgroundResource(R.drawable.primary_selected_bg)
+                            textView.setBackgroundResource(R.drawable.primary_single_bg)
                         }
                         today -> {
                             textView.setTypeface(textView.typeface, Typeface.BOLD)

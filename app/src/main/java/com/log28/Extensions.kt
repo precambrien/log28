@@ -21,6 +21,12 @@ fun daysOfWeekFromLocale(): Array<DayOfWeek> {
     return daysOfWeek
 }
 
+fun Long.addDay(amount: Int): Long {
+    val day = this.toCalendar()
+    day.add(Calendar.DAY_OF_MONTH, amount)
+    return day.formatDate()
+}
+
 internal fun Context.getColorCompat(@ColorRes color: Int) = ContextCompat.getColor(this, color)
 
 internal fun TextView.setTextColorRes(@ColorRes color: Int) = setTextColor(context.getColorCompat(color))

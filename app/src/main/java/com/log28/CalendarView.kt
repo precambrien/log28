@@ -1,5 +1,6 @@
 package com.log28
 
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -21,7 +22,6 @@ import io.realm.Realm
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
-import android.graphics.Typeface
 import java.util.*
 
 
@@ -30,12 +30,17 @@ import java.util.*
  * Use the [CalendarView.newInstance] factory method to
  * create an instance of this fragment.
  */
+const val START_DATE = 1
+const val MIDDLE_DATE = 2
+const val END_DATE = 3
+const val SINGLE_DATE = 4
+
 class CalendarView : Fragment() {
     private val realm = Realm.getDefaultInstance()
     private var periodDateObjects = realm.getPeriodDates()
 
     //TODO use a tree for better calendar performance?
-    private var periodDates = mutableListOf<Long>()
+    private var periodDates = mutableMapOf<Long, Int>()
     private val cycleInfo = realm.getCycleInfo()
 
     private lateinit var binding: FragmentCalendarViewBinding
@@ -117,10 +122,16 @@ class CalendarView : Fragment() {
                 if (day.owner == DayOwner.THIS_MONTH) {
                     textView.visibility = View.VISIBLE
                     val longDate = day.date.formatToLong()
-                    if (longDate in periodDates) {
+                    if (periodDates.containsKey(longDate)) {
                         // period day
                         textView.setTextColorRes(R.color.white)
-                        textView.setBackgroundResource(R.drawable.primary_selected_bg)
+                        val dayType = periodDates[longDate]
+                        when (dayType) {
+                            START_DATE -> textView.setBackgroundResource(R.drawable.primary_start_bg)
+                            MIDDLE_DATE -> textView.setBackgroundResource(R.drawable.primary_continuous_bg)
+                            END_DATE -> textView.setBackgroundResource(R.drawable.primary_end_bg)
+                            SINGLE_DATE -> textView.setBackgroundResource(R.drawable.primary_single_bg)
+                        }
                     } else {
                         // normal day
                         textView.background = null
@@ -152,13 +163,13 @@ class CalendarView : Fragment() {
     }
 
     // TODO there might be an off by 1 error somewhere in here
-    private fun predictFuturePeriods(periodDates: MutableList<Long>): MutableList<Long> {
+    private fun predictFuturePeriods(periodDates: MutableList<Long>): MutableMap<Long, Int> {
+        var predictedDates = periodDates.associateWith { getDayType(periodDates, it) }.toMutableMap()
+
         var cycleStart = periodDates.filter { item ->
-            val previousDay = item.toCalendar()
-            previousDay.add(Calendar.DAY_OF_MONTH, -1)
-            previousDay.formatDate() !in periodDates
+            item.addDay(-1) !in periodDates
         }.max()?.toCalendar()
-                ?: return periodDates
+                ?: return predictedDates
 
         //the earliest day we can predict the next period for is tomorrow
         val tomorrow = Calendar.getInstance()
@@ -171,14 +182,32 @@ class CalendarView : Fragment() {
                 cycleStart = tomorrow
 
             val cycleDays = cycleStart.clone() as Calendar
-            periodDates.add(cycleDays.formatDate())
+            val dayType = if (cycleInfo.periodLength == 1) SINGLE_DATE else START_DATE
+            predictedDates.put(cycleDays.formatDate(), dayType)
             for (j in 2..cycleInfo.periodLength) {
                 cycleDays.add(Calendar.DAY_OF_MONTH, 1)
-                periodDates.add(cycleDays.formatDate())
+                val dayType = if (j == cycleInfo.periodLength) END_DATE else MIDDLE_DATE
+                predictedDates.put(cycleDays.formatDate(), dayType)
             }
         }
 
-        return periodDates
+        return predictedDates
+    }
+
+    private fun getDayType(periodDates: MutableList<Long>, day: Long): Int {
+        val previousDay = day.addDay(-1)
+        val nextDay = day.addDay(1)
+
+        if (previousDay in periodDates) {
+            if (nextDay in periodDates) {
+                return MIDDLE_DATE
+            }
+            return END_DATE
+        }
+        if (nextDay in periodDates) {
+            return START_DATE
+        }
+        return SINGLE_DATE
     }
 
     override fun onDestroyView() {
